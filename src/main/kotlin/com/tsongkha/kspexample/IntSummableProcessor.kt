@@ -54,12 +54,10 @@ class IntSummableProcessor(
             className = qualifiedName
             packageName = classDeclaration.packageName.asString()
 
-            val primaryConstructor = checkNotNull(classDeclaration.primaryConstructor) {
-                "Expected data class to have a primary constructor"
-            }
-            primaryConstructor.parameters.forEach {
-                it.accept(this, Unit)
-            }
+            classDeclaration.getAllProperties()
+                .forEach {
+                    it.accept(this, Unit)
+                }
 
             if (summables.isEmpty()) {
                 return
@@ -91,10 +89,10 @@ class IntSummableProcessor(
             }
         }
 
-        override fun visitValueParameter(valueParameter: KSValueParameter, data: Unit) {
-            if (valueParameter.type.resolve().isAssignableFrom(intType)) {
-                val name = valueParameter.name ?: return
-                summables.add(name.asString())
+        override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
+            if (property.type.resolve().isAssignableFrom(intType)) {
+                val name = property.simpleName.asString()
+                summables.add(name)
             }
         }
 
