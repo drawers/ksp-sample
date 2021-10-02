@@ -1,5 +1,6 @@
 package com.tsongkha.kspexample.processor
 
+import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.symbolProcessorProviders

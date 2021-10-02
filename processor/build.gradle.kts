@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":annotation"))
     implementation(kotlin("stdlib"))
     implementation("com.squareup:kotlinpoet:1.10.1")
+    implementation("com.squareup:kotlinpoet-ksp:1.10.1")
     implementation("com.google.devtools.ksp:symbol-processing-api:1.5.31-1.0.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.4.32")

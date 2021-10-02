@@ -70,14 +70,17 @@ class IntSummableProcessor(
             ).apply {
                 addFunction(
                     FunSpec.builder("sumInts")
+                        // TODO : use toTypeName()
                         .receiver(ClassName.bestGuess(className))
                         .returns(Int::class)
-                        .addStatement("val sum = ${summables.joinToString(" + ")}")
+                        .addStatement("val sum = %L", summables.joinToString(" + "))
                         .addStatement("return sum")
                         .build()
                 )
             }.build()
 
+            // TODO: use KotlinPoet extension function on FileSpec
+            // https://square.github.io/kotlinpoet/interop-ksp/
             codeGenerator.createNewFile(
                 dependencies = Dependencies(aggregating = false),
                 packageName = packageName,
