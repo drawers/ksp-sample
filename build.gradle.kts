@@ -1,4 +1,5 @@
 plugins {
+    id("com.google.devtools.ksp") version "1.5.31-1.0.0"
     kotlin("jvm") version "1.5.31"
 }
 
@@ -10,7 +11,18 @@ repositories {
     google()
 }
 
+kotlin {
+    sourceSets.main {
+        kotlin.srcDir("build/generated/ksp/main/kotlin")
+    }
+    sourceSets.test {
+        kotlin.srcDir("build/generated/ksp/test/kotlin")
+    }
+}
+
 dependencies {
+    implementation(project(":annotation"))
+    ksp(project(":processor"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     implementation("com.squareup:kotlinpoet:1.10.1")
     implementation("com.google.devtools.ksp:symbol-processing-api:1.5.31-1.0.0")

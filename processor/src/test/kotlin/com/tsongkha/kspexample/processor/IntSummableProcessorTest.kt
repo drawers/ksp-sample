@@ -23,7 +23,7 @@ class IntSummableProcessorTest {
             "file1.kt", """
         package com.tests.summable
         
-        import com.tsongkha.kspexample.IntSummable
+        import com.tsongkha.kspexample.annotation.IntSummable
 
           @IntSummable
           class FooSummable(
@@ -48,7 +48,7 @@ class IntSummableProcessorTest {
             "file1.kt", """
         package com.tests.summable
         
-        import com.tsongkha.kspexample.IntSummable
+        import com.tsongkha.kspexample.annotation.IntSummable
 
           @IntSummable
           data class FooSummable(

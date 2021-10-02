@@ -36,14 +36,6 @@ class IntSummableProcessor(
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
             val qualifiedName = classDeclaration.qualifiedName?.asString()
 
-            if (!classDeclaration.isDataClass()) {
-                logger.error(
-                    "@IntSummable cannot target non-data class $qualifiedName",
-                    classDeclaration
-                )
-                return
-            }
-
             if (qualifiedName == null) {
                 logger.error(
                     "@IntSummable must target classes with qualified names",
@@ -52,7 +44,14 @@ class IntSummableProcessor(
                 return
             }
 
-            className = qualifiedName
+            if (!classDeclaration.isDataClass()) {
+                logger.error(
+                    "@IntSummable cannot target non-data class $qualifiedName",
+                    classDeclaration
+                )
+                return
+            }
+
             packageName = classDeclaration.packageName.asString()
 
             classDeclaration.getAllProperties()
