@@ -5,14 +5,21 @@ plugins {
 group = "org.example"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
 
 dependencies {
     implementation(project(":annotation"))
     implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.5.31")
     implementation("com.squareup:kotlinpoet:1.10.1")
     implementation("com.google.devtools.ksp:symbol-processing-api:1.5.31-1.0.0")
     testImplementation("junit:junit:4.13.2")

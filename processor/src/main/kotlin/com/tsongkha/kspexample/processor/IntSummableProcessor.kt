@@ -43,6 +43,7 @@ class IntSummableProcessor(
                 )
                 return
             }
+            className = qualifiedName
 
             if (!classDeclaration.isDataClass()) {
                 logger.error(
