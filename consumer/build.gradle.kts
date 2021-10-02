@@ -12,16 +12,6 @@ dependencies {
     ksp(project(":processor"))
 }
 
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-
 kotlin {
     sourceSets.main {
         kotlin.srcDir("build/generated/ksp/main/kotlin")
