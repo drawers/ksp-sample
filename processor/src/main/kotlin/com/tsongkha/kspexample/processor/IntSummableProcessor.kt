@@ -1,5 +1,6 @@
 package com.tsongkha.kspexample.processor
 
+import com.google.auto.service.AutoService
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
@@ -34,16 +35,16 @@ class IntSummableProcessor(
         private val summables: MutableList<String> = mutableListOf()
 
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-            val qualifiedName = classDeclaration.qualifiedName?.asString()
-
-            if (qualifiedName == null) {
+            val qualifiedName = classDeclaration.qualifiedName?.asString() ?: run {
                 logger.error(
                     "@IntSummable must target classes with qualified names",
                     classDeclaration
                 )
                 return
             }
+
             className = qualifiedName
+            packageName = classDeclaration.packageName.asString()
 
             if (!classDeclaration.isDataClass()) {
                 logger.error(
@@ -52,8 +53,6 @@ class IntSummableProcessor(
                 )
                 return
             }
-
-            packageName = classDeclaration.packageName.asString()
 
             classDeclaration.getAllProperties()
                 .forEach {
@@ -104,6 +103,7 @@ class IntSummableProcessor(
             modifiers.contains(Modifier.DATA)
     }
 
+    @AutoService(SymbolProcessorProvider::class)
     class IntSummableProcessorProvider : SymbolProcessorProvider {
 
         override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
