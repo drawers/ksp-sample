@@ -1,4 +1,4 @@
-package com.tsongkha.kspexample
+package com.tsongkha.kspexample.processor
 
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
@@ -6,6 +6,7 @@ import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.tsongkha.kspexample.annotation.IntSummable
 
 class IntSummableProcessor(
     private val options: Map<String, String>,
@@ -26,7 +27,7 @@ class IntSummableProcessor(
         return unableToProcess.toList()
     }
 
-    inner class Visitor : KSVisitorVoid() {
+    private inner class Visitor : KSVisitorVoid() {
 
         private lateinit var className: String
         private lateinit var packageName: String

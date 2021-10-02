@@ -1,11 +1,9 @@
-package com.tsongkha.kspexample
+package com.tsongkha.kspexample.processor
 
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.symbolProcessorProviders
-import org.hamcrest.MatcherAssert.assertThat
 import org.intellij.lang.annotations.Language
-import org.jetbrains.annotations.TestOnly
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
