@@ -72,7 +72,7 @@ class IntSummableProcessorTest {
                   val sum = bar + baz
                   return sum
                 }""",
-            compilationResult.sourceFor("FooSummable.kt")
+            compilationResult.sourceFor("FooSummableExt.kt")
         )
     }
 

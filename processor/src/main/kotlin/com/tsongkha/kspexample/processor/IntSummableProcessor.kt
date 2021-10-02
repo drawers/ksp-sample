@@ -4,9 +4,10 @@ import com.google.auto.service.AutoService
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
-import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.ksp.toTypeName
+import com.squareup.kotlinpoet.ksp.writeTo
 import com.tsongkha.kspexample.annotation.IntSummable
 
 class IntSummableProcessor(
@@ -30,7 +31,7 @@ class IntSummableProcessor(
 
     private inner class Visitor : KSVisitorVoid() {
 
-        private lateinit var className: String
+        private lateinit var ksType: KSType
         private lateinit var packageName: String
         private val summables: MutableList<String> = mutableListOf()
 
@@ -43,9 +44,6 @@ class IntSummableProcessor(
                 return
             }
 
-            className = qualifiedName
-            packageName = classDeclaration.packageName.asString()
-
             if (!classDeclaration.isDataClass()) {
                 logger.error(
                     "@IntSummable cannot target non-data class $qualifiedName",
@@ -53,6 +51,17 @@ class IntSummableProcessor(
                 )
                 return
             }
+
+            if (classDeclaration.typeParameters.any()) {
+                logger.error(
+                    "@IntSummable must data classes with no type parameters",
+                    classDeclaration
+                )
+                return
+            }
+
+            ksType = classDeclaration.asType(emptyList())
+            packageName = classDeclaration.packageName.asString()
 
             classDeclaration.getAllProperties()
                 .forEach {
@@ -65,12 +74,11 @@ class IntSummableProcessor(
 
             val fileSpec = FileSpec.builder(
                 packageName = packageName,
-                fileName = classDeclaration.simpleName.asString()
+                fileName = classDeclaration.simpleName.asString() + "Ext"
             ).apply {
                 addFunction(
                     FunSpec.builder("sumInts")
-                        // TODO : use toTypeName()
-                        .receiver(ClassName.bestGuess(className))
+                        .receiver(ksType.toTypeName())
                         .returns(Int::class)
                         .addStatement("val sum = %L", summables.joinToString(" + "))
                         .addStatement("return sum")
@@ -78,18 +86,7 @@ class IntSummableProcessor(
                 )
             }.build()
 
-            // TODO: use KotlinPoet extension function on FileSpec
-            // https://square.github.io/kotlinpoet/interop-ksp/
-            codeGenerator.createNewFile(
-                dependencies = Dependencies(aggregating = false),
-                packageName = packageName,
-                fileName = classDeclaration.simpleName.asString()
-            ).use { outputStream ->
-                outputStream.writer()
-                    .use {
-                        fileSpec.writeTo(it)
-                    }
-            }
+            fileSpec.writeTo(codeGenerator = codeGenerator, aggregating = false)
         }
 
         override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
