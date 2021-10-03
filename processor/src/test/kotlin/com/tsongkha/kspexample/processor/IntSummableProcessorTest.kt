@@ -78,7 +78,7 @@ class IntSummableProcessorTest {
 
     private fun compile(vararg source: SourceFile) = KotlinCompilation().apply {
         sources = source.toList()
-        symbolProcessorProviders = listOf(IntSummableProcessor.IntSummableProcessorProvider())
+        symbolProcessorProviders = listOf(IntSummableProcessorProvider())
         workingDir = temporaryFolder.root
         inheritClassPath = true
         verbose = false

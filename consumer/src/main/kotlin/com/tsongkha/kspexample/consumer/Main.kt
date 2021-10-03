@@ -11,3 +11,9 @@ data class Foo(
     val x: Int,
     val y: Int
 )
+
+@IntSummable
+data class Bar<T>(
+    val x: Int,
+    val y: Int
+)

@@ -6,7 +6,9 @@ import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.ksp.TypeParameterResolver
 import com.squareup.kotlinpoet.ksp.toTypeName
+import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
 import com.squareup.kotlinpoet.ksp.writeTo
 import com.tsongkha.kspexample.annotation.IntSummable
 
@@ -78,7 +80,7 @@ class IntSummableProcessor(
             ).apply {
                 addFunction(
                     FunSpec.builder("sumInts")
-                        .receiver(ksType.toTypeName())
+                        .receiver(ksType.toTypeName(TypeParameterResolver.EMPTY))
                         .returns(Int::class)
                         .addStatement("val sum = %L", summables.joinToString(" + "))
                         .addStatement("return sum")
@@ -95,20 +97,19 @@ class IntSummableProcessor(
                 summables.add(name)
             }
         }
-
-        private fun KSClassDeclaration.isDataClass() =
-            modifiers.contains(Modifier.DATA)
     }
 
-    @AutoService(SymbolProcessorProvider::class)
-    class IntSummableProcessorProvider : SymbolProcessorProvider {
+    private data class ClassDetails(
+        val type: KSType,
+        val simpleName: String,
+        val packageName: String
+    )
 
-        override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-            return IntSummableProcessor(
-                options = environment.options,
-                codeGenerator = environment.codeGenerator,
-                logger = environment.logger
-            )
-        }
+    private sealed class UnsupportedIntSummableException : Exception() {
+        object DataClassWithTypeParameters: UnsupportedIntSummableException()
+        object NonDataClassException: UnsupportedIntSummableException()
     }
+
+    private fun KSClassDeclaration.isDataClass() =
+        modifiers.contains(Modifier.DATA)
 }
