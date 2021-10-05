@@ -1,11 +1,16 @@
-package com.tsongkha.kspexample
+package com.tsongkha.kspexample.processor
 
+import com.google.auto.service.AutoService
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
-import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.ksp.TypeParameterResolver
+import com.squareup.kotlinpoet.ksp.toTypeName
+import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
+import com.squareup.kotlinpoet.ksp.writeTo
+import com.tsongkha.kspexample.annotation.IntSummable
 
 class IntSummableProcessor(
     private val options: Map<String, String>,
@@ -26,14 +31,20 @@ class IntSummableProcessor(
         return unableToProcess.toList()
     }
 
-    inner class Visitor : KSVisitorVoid() {
+    private inner class Visitor : KSVisitorVoid() {
 
-        private lateinit var className: String
+        private lateinit var ksType: KSType
         private lateinit var packageName: String
         private val summables: MutableList<String> = mutableListOf()
 
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-            val qualifiedName = classDeclaration.qualifiedName?.asString()
+            val qualifiedName = classDeclaration.qualifiedName?.asString() ?: run {
+                logger.error(
+                    "@IntSummable must target classes with qualified names",
+                    classDeclaration
+                )
+                return
+            }
 
             if (!classDeclaration.isDataClass()) {
                 logger.error(
@@ -43,15 +54,15 @@ class IntSummableProcessor(
                 return
             }
 
-            if (qualifiedName == null) {
+            if (classDeclaration.typeParameters.any()) {
                 logger.error(
-                    "@IntSummable must target classes with qualified names",
+                    "@IntSummable must data classes with no type parameters",
                     classDeclaration
                 )
                 return
             }
 
-            className = qualifiedName
+            ksType = classDeclaration.asType(emptyList())
             packageName = classDeclaration.packageName.asString()
 
             classDeclaration.getAllProperties()
@@ -65,28 +76,19 @@ class IntSummableProcessor(
 
             val fileSpec = FileSpec.builder(
                 packageName = packageName,
-                fileName = classDeclaration.simpleName.asString()
+                fileName = classDeclaration.simpleName.asString() + "Ext"
             ).apply {
                 addFunction(
                     FunSpec.builder("sumInts")
-                        .receiver(ClassName.bestGuess(className))
+                        .receiver(ksType.toTypeName(TypeParameterResolver.EMPTY))
                         .returns(Int::class)
-                        .addStatement("val sum = ${summables.joinToString(" + ")}")
+                        .addStatement("val sum = %L", summables.joinToString(" + "))
                         .addStatement("return sum")
                         .build()
                 )
             }.build()
 
-            codeGenerator.createNewFile(
-                dependencies = Dependencies(aggregating = false),
-                packageName = packageName,
-                fileName = classDeclaration.simpleName.asString()
-            ).use { outputStream ->
-                outputStream.writer()
-                    .use {
-                        fileSpec.writeTo(it)
-                    }
-            }
+            fileSpec.writeTo(codeGenerator = codeGenerator, aggregating = false)
         }
 
         override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
@@ -95,19 +97,19 @@ class IntSummableProcessor(
                 summables.add(name)
             }
         }
-
-        private fun KSClassDeclaration.isDataClass() =
-            modifiers.contains(Modifier.DATA)
     }
 
-    class IntSummableProcessorProvider : SymbolProcessorProvider {
+    private data class ClassDetails(
+        val type: KSType,
+        val simpleName: String,
+        val packageName: String
+    )
 
-        override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-            return IntSummableProcessor(
-                options = environment.options,
-                codeGenerator = environment.codeGenerator,
-                logger = environment.logger
-            )
-        }
+    private sealed class UnsupportedIntSummableException : Exception() {
+        object DataClassWithTypeParameters: UnsupportedIntSummableException()
+        object NonDataClassException: UnsupportedIntSummableException()
     }
+
+    private fun KSClassDeclaration.isDataClass() =
+        modifiers.contains(Modifier.DATA)
 }

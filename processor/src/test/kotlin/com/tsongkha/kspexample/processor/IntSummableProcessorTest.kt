@@ -1,11 +1,9 @@
-package com.tsongkha.kspexample
+package com.tsongkha.kspexample.processor
 
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.symbolProcessorProviders
-import org.hamcrest.MatcherAssert.assertThat
 import org.intellij.lang.annotations.Language
-import org.jetbrains.annotations.TestOnly
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -25,7 +23,7 @@ class IntSummableProcessorTest {
             "file1.kt", """
         package com.tests.summable
         
-        import com.tsongkha.kspexample.IntSummable
+        import com.tsongkha.kspexample.annotation.IntSummable
 
           @IntSummable
           class FooSummable(
@@ -50,7 +48,7 @@ class IntSummableProcessorTest {
             "file1.kt", """
         package com.tests.summable
         
-        import com.tsongkha.kspexample.IntSummable
+        import com.tsongkha.kspexample.annotation.IntSummable
 
           @IntSummable
           data class FooSummable(
@@ -73,13 +71,13 @@ class IntSummableProcessorTest {
                   val sum = bar + baz
                   return sum
                 }""",
-            compilationResult.sourceFor("FooSummable.kt")
+            compilationResult.sourceFor("FooSummableExt.kt")
         )
     }
 
     private fun compile(vararg source: SourceFile) = KotlinCompilation().apply {
         sources = source.toList()
-        symbolProcessorProviders = listOf(IntSummableProcessor.IntSummableProcessorProvider())
+        symbolProcessorProviders = listOf(IntSummableProcessorProvider())
         workingDir = temporaryFolder.root
         inheritClassPath = true
         verbose = false
